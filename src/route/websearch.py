@@ -17,11 +17,3 @@ print(f"✓ Tavily API Key loaded: {tavily_api_key[:10]}...")
 # Initialize the search tool
 web_search_tool = TavilySearch(k=1)
 
-# Test the search
-if __name__ == "__main__":
-    question = "What is ai agent ?"
-    results = web_search_tool.invoke(question)
-    print("\n" + "="*70)
-    print("SEARCH RESULTS")
-    print("="*70)
-    print(results)

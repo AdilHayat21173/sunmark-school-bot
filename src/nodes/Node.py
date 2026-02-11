@@ -29,9 +29,19 @@ def retrieve(state):
 
     _, retriever = get_vectorstore(force_recreate=False)
 
-    # Retrieval
-    documents = retriever.invoke(question)
-    return {"documents": documents, "question": question}
+    # Retrieval - ask for results and keep only the top result (k=1)
+    docs = retriever.invoke(question)
+
+    # Normalize to list of Documents
+    if hasattr(docs, "page_content"):
+        docs_list = [docs]
+    elif isinstance(docs, list):
+        docs_list = docs
+    else:
+        docs_list = [docs]
+
+    top_docs = docs_list[:1]
+    return {"documents": top_docs, "question": question}
 
 def generate(state):
     """
@@ -47,9 +57,46 @@ def generate(state):
     question = state["question"]
     documents = state["documents"]
 
-    # Generation
-    generation = rag_chain.invoke({"context": documents, "question": question})
-    return {"documents": documents, "question": question, "generation": generation}
+    # Normalize documents and use only the top document as context
+    if isinstance(documents, Document):
+        docs_list = [documents]
+    elif isinstance(documents, list):
+        docs_list = documents
+    else:
+        docs_list = [documents]
+
+    top_docs = docs_list[:1]
+    context = top_docs[0].page_content if top_docs else ""
+
+    # Generation using only the top document
+    generation = rag_chain.invoke({"context": context, "question": question})
+
+    # If the user also asks about AI, fetch a web summary and append it
+    ql = question.lower()
+    if "ai" in ql or "artificial intelligence" in ql:
+        # call web search tool and summarize top result
+        web_docs = web_search_tool.invoke(question)
+        # normalize
+        if isinstance(web_docs, str):
+            web_text = web_docs
+        elif isinstance(web_docs, list):
+            if all(isinstance(d, dict) and "content" in d for d in web_docs):
+                web_text = web_docs[0]["content"] if web_docs else ""
+            elif all(hasattr(d, "page_content") for d in web_docs):
+                web_text = web_docs[0].page_content if web_docs else ""
+            else:
+                web_text = str(web_docs[0]) if web_docs else ""
+        elif hasattr(web_docs, "page_content"):
+            web_text = web_docs.page_content
+        else:
+            web_text = str(web_docs)
+
+        if web_text:
+            web_summary = rag_chain.invoke({"context": web_text, "question": question})
+            combined = f"{generation}\n\nAbout AI:\n{web_summary}"
+            return {"documents": top_docs, "question": question, "generation": combined}
+
+    return {"documents": top_docs, "question": question, "generation": generation}
 
 def grade_documents(state):
     """

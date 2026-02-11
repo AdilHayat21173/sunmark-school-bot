@@ -2,7 +2,7 @@ from src.graphs.graph import app
 
 if __name__ == "__main__":
     # Example question
-    question = "Tell me about the sunmark school "
+    question = "Tell me about the sunmark school?"
 
     # Run the graph with the initial state containing the question
     final_state = app.invoke({"question": question})
