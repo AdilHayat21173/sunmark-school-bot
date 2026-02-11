@@ -1,0 +1,23 @@
+# Core LangGraph and LangChain dependencies
+langgraph
+langchain-core
+typing-extensions
+
+# Common additional dependencies you might need
+langchain
+langchain-openai
+langchain-community
+
+# Data processing
+pandas
+numpy
+
+
+
+# Environment variables
+python-dotenv
+
+
+google-generativeai
+langchain_google_genai
+langchain-groq
