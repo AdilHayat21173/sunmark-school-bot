@@ -31,9 +31,3 @@ grade_prompt = ChatPromptTemplate.from_messages(
 retrieval_grader = grade_prompt | structured_llm_grader
 
 
-# question = "tell me about the sunmark school"
-# vectorstore, retriever = get_vectorstore(force_recreate=False)    
-# results = retriever.invoke(question)
-# docs = retriever.invoke(question)
-# doc_txt = docs[1].page_content
-# print(retrieval_grader.invoke({"question": question, "document": doc_txt}))

@@ -1,9 +1,6 @@
-
 from pydantic import BaseModel,Field
 from langchain_core.prompts import ChatPromptTemplate
 from src.llms.llm import Groqllm
-
-# check the given answer of llm solve the question 
 
 # Data model
 class GradeAnswer(BaseModel):
@@ -31,5 +28,3 @@ answer_prompt = ChatPromptTemplate.from_messages(
 
 answer_grader = answer_prompt | structured_llm_grader
 
-# Callers should invoke `answer_grader.invoke({...})` with their own
-# `question` and `generation` values.

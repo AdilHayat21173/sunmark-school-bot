@@ -27,5 +27,3 @@ hallucination_prompt = ChatPromptTemplate.from_messages(
 
 hallucination_grader = hallucination_prompt | structured_llm_grader
 
-# Callers should invoke `hallucination_grader.invoke({...})` with
-# their own `documents` and `generation` values.

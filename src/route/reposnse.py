@@ -2,12 +2,6 @@
 from src.llms.llm import Groqllm
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
-"""RAG response chain setup.
-
-This module defines `rag_chain` (prompt -> llm -> parser). Avoid invoking
-the chain at import time; callers should call `rag_chain.invoke(...)` with
-their own `context` and `question`.
-"""
 
 # Create your own RAG prompt
 prompt = ChatPromptTemplate.from_messages([

@@ -130,25 +130,3 @@ def get_vectorstore(force_recreate=False):
     else:
         return create_new_vectorstore()
 
-# Main execution
-if __name__ == "__main__":
-    # Get vectorstore (will load if exists, create if doesn't)
-    vectorstore, retriever = get_vectorstore(force_recreate=False)
-    
-    # Test the retriever
-    print("Testing retriever...")
-    question = "What is the principal's message?"
-    results = retriever.invoke(question)
-    
-    print(f"\n❓ Question: {question}")
-    print(f"\n💡 Found {len(results)} results:\n")
-    
-    for i, doc in enumerate(results[:2], 1):
-        print(f"{i}. {doc.metadata['section']} - {doc.metadata['subsection']}")
-        print(f"   URL: {doc.metadata['url']}")
-        print(f"   Content: {doc.page_content[:200]}...\n")
-    
-    print("\n" + "="*70)
-    print("TIP: To recreate the vectorstore, use:")
-    print("  vectorstore, retriever = get_vectorstore(force_recreate=True)")
-    print("="*70)
