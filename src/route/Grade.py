@@ -3,9 +3,9 @@
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_groq import ChatGroq
 from pydantic import BaseModel, Field
-from rags.rag import get_vectorstore
-from llms.llm import Groqllm
-from prompts.routerprompt import binary_system
+from src.rags.rag import get_vectorstore
+from src.llms.llm import Groqllm
+from src.prompts.routerprompt import binary_system
 
 class Grader(BaseModel):
     "binary classification of the document it give yes if relevant of document and no if not relevant"
@@ -30,7 +30,7 @@ grade_prompt = ChatPromptTemplate.from_messages(
 
 ##chain the prompt with the LLM
 retrieval_grader = grade_prompt | structured_llm_grader
-question = "agent memory"
+question = "tell me about the sunmark school"
 vectorstore, retriever = get_vectorstore(force_recreate=False)    
 results = retriever.invoke(question)
 docs = retriever.invoke(question)
