@@ -1,24 +1,13 @@
-## Generate a response
-from src.llms.llm import Groqllm
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.prompts import ChatPromptTemplate
-from src.route.Grade import docs, question
+from src.graphs.graph import app
 
-# Create your own RAG prompt
-prompt = ChatPromptTemplate.from_messages([
-    ("system", "You are an assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question. If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise."),
-    ("human", "Question: {question}\n\nContext: {context}\n\nAnswer:")
-])
+if __name__ == "__main__":
+    # Example question
+    question = "Tell me about the sunmark school "
 
-llm = Groqllm().get_llm()
+    # Run the graph with the initial state containing the question
+    final_state = app.invoke({"question": question})
 
-# Post-processing
-def format_docs(docs):
-    return "\n\n".join(doc.page_content for doc in docs)
-
-# Chain
-rag_chain = prompt | llm | StrOutputParser()
-
-# Run
-generation = rag_chain.invoke({"context": format_docs(docs), "question": question})
-print(generation)
+    print("\n" + "="*70)
+    print("FINAL STATE")
+    print("="*70)
+    print(final_state)

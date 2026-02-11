@@ -3,7 +3,6 @@
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_groq import ChatGroq
 from pydantic import BaseModel, Field
-from src.rags.rag import get_vectorstore
 from src.llms.llm import Groqllm
 from src.prompts.routerprompt import binary_system
 
@@ -30,9 +29,11 @@ grade_prompt = ChatPromptTemplate.from_messages(
 
 ##chain the prompt with the LLM
 retrieval_grader = grade_prompt | structured_llm_grader
-question = "tell me about the sunmark school"
-vectorstore, retriever = get_vectorstore(force_recreate=False)    
-results = retriever.invoke(question)
-docs = retriever.invoke(question)
-doc_txt = docs[1].page_content
-print(retrieval_grader.invoke({"question": question, "document": doc_txt}))
+
+
+# question = "tell me about the sunmark school"
+# vectorstore, retriever = get_vectorstore(force_recreate=False)    
+# results = retriever.invoke(question)
+# docs = retriever.invoke(question)
+# doc_txt = docs[1].page_content
+# print(retrieval_grader.invoke({"question": question, "document": doc_txt}))

@@ -2,8 +2,6 @@
 from pydantic import BaseModel,Field
 from langchain_core.prompts import ChatPromptTemplate
 from src.llms.llm import Groqllm
-from src.route.Grade import docs
-from src.route.reposnse import generation
 # Data model
 class GradeHallucinations(BaseModel):
     """Binary score for hallucination present in generation answer."""
@@ -28,5 +26,6 @@ hallucination_prompt = ChatPromptTemplate.from_messages(
 )
 
 hallucination_grader = hallucination_prompt | structured_llm_grader
-result=hallucination_grader.invoke({"documents": docs, "generation": generation})
-print("Hallucination result:", result)
+
+# Callers should invoke `hallucination_grader.invoke({...})` with
+# their own `documents` and `generation` values.

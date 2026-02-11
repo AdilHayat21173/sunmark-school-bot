@@ -2,8 +2,6 @@
 from pydantic import BaseModel,Field
 from langchain_core.prompts import ChatPromptTemplate
 from src.llms.llm import Groqllm
-from src.route.Grade import docs,question
-from src.route.reposnse import generation
 from langchain_core.output_parsers import StrOutputParser
 
 system = """You a question re-writer that converts an input question to a better version that is optimized \n 
@@ -23,5 +21,3 @@ re_write_prompt = ChatPromptTemplate.from_messages(
 )
 
 question_rewriter = re_write_prompt | llm | StrOutputParser()
-result = question_rewriter.invoke({"question": question})
-print("Rewritten Question:", result)

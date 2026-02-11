@@ -5,9 +5,9 @@ from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, Field
 from langchain_groq import ChatGroq
 
-from llms.llm import Groqllm
+from src.llms.llm import Groqllm
 #router prompt
-from prompts.routerprompt import system
+from src.prompts.routerprompt import system
 
 
 
@@ -44,8 +44,3 @@ route_prompt = ChatPromptTemplate.from_messages(
 
 question_router = route_prompt | structured_llm_router
 
-print(
-    question_router.invoke(
-        {"question": "Tell me about the sunmark school curriculum and subjects offered?"}
-    )
-)
