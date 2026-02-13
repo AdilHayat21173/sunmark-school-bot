@@ -1,13 +1,19 @@
 from langchain_core.documents import Document
-from src.states.state import GraphState
-
-from pydantic import BaseModel,Field
-from langchain_core.prompts import ChatPromptTemplate
-from src.llms.llm import Groqllm
 from src.route.reposnse import rag_chain
-from src.route.websearch import web_search_tool
 from src.route.rewriteprompt import question_rewriter
-from langchain_core.output_parsers import StrOutputParser
+from functools import lru_cache
+
+
+@lru_cache(maxsize=1)
+def get_chat_llm():
+    from src.llms.llm import Groqllm
+    return Groqllm().get_llm()
+
+
+@lru_cache(maxsize=1)
+def get_web_search_tool():
+    from src.route.websearch import web_search_tool
+    return web_search_tool
 
 
 
@@ -75,7 +81,7 @@ def generate(state):
     ql = question.lower()
     if "ai" in ql or "artificial intelligence" in ql:
         # call web search tool and summarize top result
-        web_docs = web_search_tool.invoke(question)
+        web_docs = get_web_search_tool().invoke(question)
         # normalize
         if isinstance(web_docs, str):
             web_text = web_docs
@@ -97,6 +103,17 @@ def generate(state):
             return {"documents": top_docs, "question": question, "generation": combined}
 
     return {"documents": top_docs, "question": question, "generation": generation}
+
+
+def chat(state):
+    """
+    Handle normal conversational prompts without RAG/web retrieval.
+    """
+    print("---CHAT---")
+    question = state["question"]
+    llm = get_chat_llm()
+    generation = llm.invoke(question).content
+    return {"documents": [], "question": question, "generation": generation}
 
 def grade_documents(state):
     """
@@ -167,7 +184,7 @@ def web_search(state):
 
     # Web search
     # The Tavily tool may accept a raw string or a dict; call with the string.
-    docs = web_search_tool.invoke(question)
+    docs = get_web_search_tool().invoke(question)
 
     # Normalize different possible return types into a list of Documents
     if isinstance(docs, str):

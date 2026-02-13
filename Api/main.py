@@ -4,6 +4,7 @@ from . import models
 from .routers import auth, chat
 from fastapi.middleware.cors import CORSMiddleware
 from .routers import users
+from .config import settings
 
 app = FastAPI(title="Chatbot API")
 
@@ -11,8 +12,8 @@ models.Base.metadata.create_all(bind=engine)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=settings.cors_origins,
+    allow_credentials=bool(settings.cors_origins) and "*" not in settings.cors_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )

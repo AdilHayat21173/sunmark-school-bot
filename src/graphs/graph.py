@@ -2,12 +2,13 @@ from langgraph.graph import END, StateGraph, START
 
 from src.states.state import GraphState
 
-from src.nodes.Node import retrieve, generate, grade_documents, transform_query, web_search
+from src.nodes.Node import retrieve, generate, grade_documents, transform_query, web_search, chat
 from src.Edges.Edge import route_question, decide_to_generate, grade_generation_v_documents_and_question
 
 workflow = StateGraph(GraphState)
 
 # Define the nodes
+workflow.add_node("chat", chat)  # normal conversation
 workflow.add_node("web_search", web_search)  # web search
 workflow.add_node("retrieve", retrieve)  # retrieve
 workflow.add_node("grade_documents", grade_documents)  # grade documents
@@ -19,10 +20,12 @@ workflow.add_conditional_edges(
     START,
     route_question,
     {
+        "chat": "chat",
         "web_search": "web_search",
         "vectorstore": "retrieve",
     },
 )
+workflow.add_edge("chat", END)
 workflow.add_edge("web_search", "generate")
 workflow.add_edge("retrieve", "grade_documents")
 workflow.add_conditional_edges(

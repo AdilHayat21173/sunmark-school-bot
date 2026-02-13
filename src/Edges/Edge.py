@@ -1,6 +1,5 @@
 ### Edges ###
 from src.route.route import question_router
-from src.llms.llm import Groqllm
 from src.route.GradeHallucination import hallucination_grader
 from src.route.GradeAnswer import answer_grader
 
@@ -19,32 +18,53 @@ def route_question(state):
     print("---ROUTE QUESTION---")
     question = state["question"]
 
-    # Attempt to use the trained router; fall back to a simple heuristic
-    # if the model fails to call a tool or returns an unexpected value.
+    # Heuristic short-circuit first for stability on simple prompts.
+    ql = question.lower()
+    stripped = ql.strip()
+    school_keywords = [
+        "sunmark", "sunmarke", "school", "admission", "fees", "principal",
+        "campus", "curriculum", "ib", "a-level", "a level", "btec"
+    ]
+    web_lookup_keywords = [
+        "today", "latest", "current", "news", "weather", "stock", "price",
+        "recent", "update", "headline"
+    ]
+    casual_keywords = [
+        "hi", "hello", "hey", "how are you", "who are you", "thank you",
+        "thanks", "good morning", "good evening", "what can you do"
+    ]
+    casual_exact = {"hi", "hello", "hey", "yo", "sup", "thanks", "thank you"}
+
+    if stripped in casual_exact or any(k in ql for k in casual_keywords):
+        print("---ROUTER HEURISTIC: choosing CHAT---")
+        return "chat"
+    if any(k in ql for k in school_keywords):
+        print("---ROUTER HEURISTIC: choosing RAG (vectorstore)---")
+        return "vectorstore"
+    if any(k in ql for k in web_lookup_keywords):
+        print("---ROUTER HEURISTIC: choosing WEB SEARCH---")
+        return "web_search"
+
+    # Attempt to use the trained router for ambiguous prompts.
     try:
         source = question_router.invoke({"question": question})
         ds = getattr(source, "datasource", None)
     except Exception as e:
-        print("Router failed, falling back to heuristic:", e)
+        print("Router failed, falling back to chat:", e)
         ds = None
 
-    # Normalize possible values and fall back to heuristic when needed
     if ds in ("web_search", "websearch", "web-search"):
         print("---ROUTE QUESTION TO WEB SEARCH---")
         return "web_search"
     if ds in ("vectorstore", "vector_store", "vector-store"):
         print("---ROUTE QUESTION TO RAG---")
         return "vectorstore"
+    if ds in ("chat", "conversation", "normal_chat"):
+        print("---ROUTE QUESTION TO CHAT---")
+        return "chat"
 
-    # Heuristic fallback: school-related keywords -> vectorstore, else web_search
-    ql = question.lower()
-    school_keywords = ["sunmark", "school", "admission", "fees", "principal", "campus", "curriculum", "ib", "a-level", "a level", "btec"]
-    if any(k in ql for k in school_keywords):
-        print("---ROUTER FALLBACK: choosing RAG (vectorstore)---")
-        return "vectorstore"
-
-    print("---ROUTER FALLBACK: choosing WEB SEARCH---")
-    return "web_search"
+    print("---ROUTER DEFAULT: choosing CHAT---")
+    return "chat"
 
 
 def decide_to_generate(state):

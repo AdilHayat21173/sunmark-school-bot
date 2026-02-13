@@ -1,10 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from .. import models, oauth2
+from .. import models, oauth2, schemas
 from ..database import get_db
-from src.graphs.graph import app
+from functools import lru_cache
 
 router = APIRouter(prefix="/chat", tags=["Chat"])
+
+
+@lru_cache(maxsize=1)
+def get_graph_app():
+    from src.graphs.graph import app
+    return app
 
 @router.post("/session")
 def create_session(db: Session = Depends(get_db),
@@ -27,9 +33,10 @@ def get_sessions(db: Session = Depends(get_db),
 
 @router.post("/{session_id}")
 def chat(session_id: int,
-         message: str,
+         payload: schemas.MessageCreate,
          db: Session = Depends(get_db),
          current_user: models.User = Depends(oauth2.get_current_user)):
+    message = payload.message
 
     session = db.query(models.ChatSession)\
         .filter(models.ChatSession.id == session_id,
@@ -42,7 +49,17 @@ def chat(session_id: int,
     db.add(models.Message(session_id=session_id, role="user", content=message))
     db.commit()
 
-    final_state = app.invoke({"question": message})
+    try:
+        graph_app = get_graph_app()
+        final_state = graph_app.invoke(
+            {"question": message},
+            config={"recursion_limit": 12}
+        )
+    except Exception:
+        raise HTTPException(
+            status_code=503,
+            detail="Chat service is temporarily unavailable"
+        )
     response = final_state["generation"]
 
     db.add(models.Message(session_id=session_id, role="assistant", content=response))
